@@ -1,0 +1,103 @@
+#This is a song file for the Python Music Synthesizer
+
+#Lines starting with # are comments.
+
+#--- Global Settings ---
+
+TEMPO: 120
+SAMPLE_RATE: 44100
+MASTER_AMPLITUDE: 0.7
+OUTPUT_FILE: seven_nation_army.wav
+
+#--- Track 1: Bassline ---
+
+[TRACK: bass]
+INSTRUMENT: bass
+VOLUME: 0.8
+TIME_SIGNATURE: 4/4
+
+#Note: The last item on a line is ALWAYS the duration
+
+#in quarter notes (1.0 = quarter, 0.5 = 8th, etc.)
+
+#Bar 1
+
+E3 1.5
+E3 0.5
+G3 1.0
+E3 1.0
+
+Bar 2
+
+D3 1.5
+D3 0.5
+C3 2.0
+
+Bar 3
+
+B2 4.0
+
+Bar 4
+
+REST 4.0
+
+Repeat Riff x4
+
+[REPEAT: 3]
+
+--- Track 2: Drums ---
+
+[TRACK: drums]
+INSTRUMENT: drums
+VOLUME: 0.6
+TIME_SIGNATURE: 4/4
+
+A 1-bar, four-on-the-floor beat
+
+KICK HAT 0.5
+HAT 0.5
+SNARE HAT 0.5
+HAT 0.5
+KICK HAT 0.5
+HAT 0.5
+SNARE HAT 0.5
+HAT 0.5
+
+Repeat for 16 bars total
+
+[REPEAT: 15]
+
+--- Track 3: Vocal Melody ---
+
+[TRACK: melody]
+INSTRUMENT: piano
+VOLUME: 0.5
+TIME_SIGNATURE: 4/4
+
+"I'm gon-na fight 'em off..." (Bars 1-4)
+
+E4 1.5
+E4 0.5
+G4 1.0
+E4 1.0
+D4 1.5
+D4 0.5
+C4 2.0
+B3 4.0
+REST 4.0
+
+"...A sev-en na-tion ar-my..." (Bars 5-8)
+
+E4 1.5
+E4 0.5
+G4 1.0
+E4 1.0
+D4 1.5
+D4 0.5
+C4 2.0
+B3 4.0
+REST 4.0
+
+Rest for 8 bars
+
+REST 32.0

@@ -47,19 +47,46 @@ class SongPlayer:
     to generate a full song waveform.
     """
     
-    # FIX: Change type hint from Instrument to BaseInstrument
-    def __init__(self, tempo, instrument: BaseInstrument, sample_rate=44100, a4=440.0):
+    # --- MODIFIED __init__ ---
+    def __init__(self, tempo, instrument: BaseInstrument, time_signature="4/4", sample_rate=44100, a4=440.0):
         """
-        Initialize the player with a tempo and a default instrument.
+        Initialize the player with a tempo, instrument, and time signature.
+        
+        Args:
+            tempo (int): Beats Per Minute (relative to the time signature's beat unit).
+            instrument (BaseInstrument): The instrument to play.
+            time_signature (str): e.g., "4/4", "3/4", "6/8".
         """
         self.tempo = tempo
+        self.instrument = instrument
         self.sample_rate = sample_rate
-        self.beat_duration_s = 60.0 / tempo # Duration of one beat
         
+        # Parse time signature
+        try:
+            parts = time_signature.split('/')
+            self.beats_per_measure = int(parts[0])
+            self.beat_unit = int(parts[1]) # e.g., 4 for quarter, 8 for eighth
+        except Exception:
+            print(f"Warning: Invalid time signature '{time_signature}'. Defaulting to 4/4.")
+            self.beats_per_measure = 4
+            self.beat_unit = 4
+            
+        # --- NEW DURATION LOGIC ---
+        # Calculate the duration of a single "beat" (as defined by tempo and time_sig)
+        # e.g., if 6/8 and 180 BPM, this is the duration of one 8th note.
+        self.base_beat_duration_s = 60.0 / self.tempo
+        
+        # Calculate the duration of a single quarter note. This is our
+        # standard unit for composing.
+        # (beat_unit / 4.0) is the multiplier.
+        # e.g., 6/8: (8 / 4.0) = 2.0. A quarter note is 2x an 8th note beat.
+        # e.g., 4/4: (4 / 4.0) = 1.0. A quarter note is 1x a quarter note beat.
+        # e.g., 2/2: (2 / 4.0) = 0.5. A quarter note is 0.5x a half note beat.
+        self.quarter_note_duration_s = self.base_beat_duration_s * (self.beat_unit / 4.0)
+
         # Internal tools
         self.freq_calc = NoteFrequencies(a4)
         self.mixer = AudioMixer(sample_rate)
-        self.instrument = instrument
 
     def get_note_waveform(self, note_list: list, duration_s: float, amplitude: float):
         """
@@ -79,26 +106,32 @@ class SongPlayer:
             self.instrument, frequencies, duration_s, amplitude
         )
         
-        # 3. Apply a short fade-out (Release) to prevent clicks
-        fade_duration_s = 0.01 # 10ms fade-out
+        # 3. Apply a short fade-out (Release)
+        fade_duration_s = min(duration_s * 0.05, 0.01) # 10ms or 5%, whichever is shorter
         fade_out_samples = int(self.sample_rate * fade_duration_s)
-        
+
         if fade_out_samples > 0 and len(base_wave) > fade_out_samples:
-            # Create a fade-out envelope (linear from 1 to 0)
-            fade_out_env = np.linspace(1, 0, fade_out_samples)
-            # Apply it to the end of the wave
-            base_wave[-fade_out_samples:] *= fade_out_env
+            fade_envelope = np.linspace(1.0, 0.0, fade_out_samples)
+            base_wave[-fade_out_samples:] *= fade_envelope
             
         return base_wave
 
     def generate_song_waveform(self, song_data: list, amplitude=0.5):
         """
-        Generates the full song waveform by sequencing notes.
+        Generates the full song waveform from song data.
+        
+        The 'num_beats' in song_data is *always* relative to a
+        quarter note (1.0 = quarter note, 0.5 = 8th note, etc.)
         """
         all_wave_chunks = []
-        print(f"Generating song with {self.instrument.__class__.__name__}...")
+        
+        print(f"Generating song with {self.instrument.__class__.__name__} ({self.beats_per_measure}/{self.beat_unit})...")
         for note_list, num_beats in song_data:
-            duration_s = self.beat_duration_s * num_beats
+            
+            # --- MODIFIED DURATION CALCULATION ---
+            # Calculate duration based on our standard quarter note length
+            duration_s = self.quarter_note_duration_s * num_beats
+            
             chunk = self.get_note_waveform(note_list, duration_s, amplitude)
             all_wave_chunks.append(chunk)
             
