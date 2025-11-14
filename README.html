@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Synthesizer API Docs</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for syntax highlighting-like effect */
+        code[class*="language-"],
+        pre[class*="language-"] {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        /* Inline code */
+        :not(pre) > code {
+            @apply bg-gray-200 text-red-700 px-1.5 py-0.5 rounded-md font-medium;
+        }
+        
+        /* Code blocks */
+        pre {
+            @apply bg-gray-800 text-white p-4 rounded-lg overflow-x-auto shadow-lg;
+        }
+        
+        /* Specific tokens (simplified) */
+        .code-keyword { @apply text-pink-400; }
+        .code-function { @apply text-yellow-300; }
+        .code-string { @apply text-green-300; }
+        .code-comment { @apply text-gray-400 italic; }
+        .code-class { @apply text-teal-300; }
+        .code-param { @apply text-blue-300; }
+
+        /* Smooth scrolling for anchors */
+        html {
+            scroll-padding-top: 2rem; /* Offset for sticky header if we had one */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-gray-800">Python Music Synthesizer</h1>
+            <p class="text-lg text-gray-600">API Reference Documentation</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8 flex flex-col lg:flex-row">
+
+        <!-- Sidebar Navigation -->
+        <aside class="w-full lg:w-1/4 lg:pr-8 mb-8 lg:mb-0">
+            <div class="sticky top-8 bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Navigation</h3>
+                <nav>
+                    <ul class="space-y-2">
+                        <li><a href="#quick-start" class="block font-medium text-blue-600 hover:text-blue-800 hover:underline">Quick Start</a></li>
+                        <li>
+                            <a href="#core-api" class="block font-semibold text-lg text-gray-800 hover:text-blue-800 hover:underline">Core API</a>
+                            <ul class="ml-4 space-y-2 mt-2 border-l pl-4">
+                                <li><a href="#instrument-factory" class="block text-gray-600 hover:text-blue-800">InstrumentFactory</a></li>
+                                <li><a href="#song-player" class="block text-gray-600 hover:text-blue-800">SongPlayer</a></li>
+                                <li><a href="#multitrack-mixer" class="block text-gray-600 hover:text-blue-800">MultiTrackMixer</a></li>
+                                <li><a href="#utils" class="block text-gray-600 hover:text-blue-800">Utility Functions</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#plugin-api" class="block font-semibold text-lg text-gray-800 hover:text-blue-800 hover:underline">Plugin API</a>
+                            <ul class="ml-4 space-y-2 mt-2 border-l pl-4">
+                                <li><a href="#base-instrument" class="block text-gray-600 hover:text-blue-800">BaseInstrument</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#supporting-tools" class="block font-semibold text-lg text-gray-800 hover:text-blue-800 hover:underline">Supporting Tools</a>
+                            <ul class="ml-4 space-y-2 mt-2 border-l pl-4">
+                                <li><a href="#note-frequencies" class="block text-gray-600 hover:text-blue-800">NoteFrequencies</a></li>
+                                <li><a href="#chord" class="block text-gray-600 hover:text-blue-800">Chord</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="w-full lg:w-3/4 lg:pl-8">
+            <div class="bg-white p-8 rounded-lg shadow-md space-y-12">
+
+                <!-- Quick Start -->
+                <section id="quick-start">
+                    <h2 class="text-3xl font-bold text-gray-800 border-b pb-3 mb-6">Quick Start Example</h2>
+                    <p class="text-gray-700 mb-6">
+                        This example shows the complete workflow from loading instruments to saving a final, mixed file.
+                    </p>
+                    <pre><code class="language-python">
+<span class="code-comment"># --- 1. Setup ---</span>
+<span class="code-keyword">from</span> sound_design <span class="code-keyword">import</span> <span class="code-class">InstrumentFactory</span>
+<span class="code-keyword">from</span> mixing <span class="code-keyword">import</span> <span class="code-class">SongPlayer</span>, <span class="code-class">MultiTrackMixer</span>, <span class="code-function">save_wav</span>, <span class="code-function">normalize_to_16bit</span>
+
+SAMPLE_RATE = <span class="code-string">44100</span>
+factory = <span class="code-function">InstrumentFactory</span>() <span class="code-comment"># This loads all plugins</span>
+
+<span class="code-comment"># --- 2. Create Instruments ---</span>
+piano = factory.<span class="code-function">create_instrument</span>(<span class="code-string">'piano'</span>)
+synth = factory.<span class="code-function">create_instrument</span>(
+    name=<span class="code-string">'sawtooth'</span>,
+    attack_s=<span class="code-string">0.05</span>,
+    decay_s=<span class="code-string">0.1</span>,
+    sustain_level=<span class="code-string">0.7</span>
+)
+
+<span class="code-comment"># --- 3. Define Song Data ---</span>
+<span class="code-comment"># List of ( [notes], beats ) tuples</span>
+melody_data = [ ([<span class="code-string">'C4'</span>], <span class="code-string">1</span>), ([<span class="code-string">'E4'</span>], <span class="code-string">1</span>), ([<span class="code-string">'G4'</span>], <span class="code-string">2</span>) ]
+chord_data = [ ([<span class="code-string">'C4'</span>, <span class="code-string">'E4'</span>, <span class="code-string">'G4'</span>], <span class="code-string">4</span>) ]
+
+<span class="code-comment"># --- 4. Generate Tracks ---</span>
+<span class="code-comment"># Generate melody track</span>
+player_piano = <span class="code-function">SongPlayer</span>(tempo=<span class="code-string">120</span>, instrument=piano, sample_rate=SAMPLE_RATE)
+melody_track = player_piano.<span class="code-function">generate_song_waveform</span>(melody_data, amplitude=<span class="code-string">1.0</span>)
+
+<span class="code-comment"># Generate chord track</span>
+player_synth = <span class="code-function">SongPlayer</span>(tempo=<span class="code-string">120</span>, instrument=synth, sample_rate=SAMPLE_RATE)
+chord_track = player_synth.<span class="code-function">generate_song_waveform</span>(chord_data, amplitude=<span class="code-string">1.0</span>)
+
+<span class="code-comment"># --- 5. Mix Tracks ---</span>
+mixer = <span class="code-function">MultiTrackMixer</span>(master_amplitude=<span class="code-string">0.8</span>)
+final_song = mixer.<span class="code-function">mix_tracks</span>([
+    (melody_track, <span class="code-string">0.7</span>),  <span class="code-comment"># Melody at 70% volume</span>
+    (chord_track, <span class="code-string">0.4</span>)    <span class="code-comment"># Chords at 40% volume</span>
+])
+
+<span class="code-comment"># --- 6. Save File ---</span>
+final_song_16bit = <span class="code-function">normalize_to_16bit</span>(final_song)
+<span class="code-function">save_wav</span>(<span class="code-string">"my_song.wav"</span>, SAMPLE_RATE, final_song_16bit)
+</code></pre>
+                </section>
+
+                <hr class="border-t-2 border-gray-200" />
+
+                <!-- Core API -->
+                <section id="core-api">
+                    <h2 class="text-3xl font-bold text-gray-800 border-b pb-3 mb-6">Core API Reference</h2>
+                    
+                    <!-- InstrumentFactory -->
+                    <article id="instrument-factory" class="mb-10">
+                        <h3 class="text-2xl font-semibold text-gray-700"><code>class InstrumentFactory</code></h3>
+                        <p class="text-gray-600 mb-4 ml-2">File: <code>sound_design.py</code></p>
+                        <p class="text-gray-700 mb-4">
+                            Loads, caches, and creates instances of all available instrument plugins.
+                        </p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>__init__(self)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Initializes the factory. Automatically scans the <code>instruments/</code> directory and loads all valid plugins.
+                        </p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>create_instrument(self, name, **adsr_params)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Creates an instance of a loaded instrument.
+                        </p>
+                        <ul class="list-disc list-outside ml-8 text-gray-700 space-y-2">
+                            <li><strong>Parameters:</strong>
+                                <ul class="list-disc list-outside ml-6 space-y-1 mt-1">
+                                    <li><code>name</code> (str): The name of the instrument (e.g., <code>'piano'</code>, <code>'sine'</code>). Case-insensitive.</li>
+                                    <li><code>**adsr_params</code> (kwargs): Optional keywords to override envelope defaults (e.g., <code>attack_s=0.01</code>, <code>sustain_level=0.5</code>).</li>
+                                </ul>
+                            </li>
+                            <li><strong>Returns:</strong> An instance of a <code>BaseInstrument</code> subclass.</li>
+                            <li><strong>Raises:</strong> <code>ValueError</code> if the instrument <code>name</code> is not found.</li>
+                        </ul>
+                    </article>
+                    
+                    <!-- SongPlayer -->
+                    <article id="song-player" class="mb-10">
+                        <h3 class="text-2xl font-semibold text-gray-700"><code>class SongPlayer</code></h3>
+                        <p class="text-gray-600 mb-4 ml-2">File: <code>mixing.py</code></p>
+                        <p class="text-gray-700 mb-4">
+                            Sequences notes and chords based on a tempo (BPM) to generate a single audio track (waveform) using one instrument.
+                        </p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>__init__(self, tempo, instrument, ...)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Initializes the song player.
+                        </p>
+                        <ul class="list-disc list-outside ml-8 text-gray-700 space-y-2">
+                            <li><strong>Parameters:</strong>
+                                <ul class="list-disc list-outside ml-6 space-y-1 mt-1">
+                                    <li><code>tempo</code> (int): The song's tempo in beats per minute (BPM).</li>
+                                    <li><code>instrument</code> (BaseInstrument): The instrument object (from <code>InstrumentFactory</code>) to use.</li>
+                                    <li><code>sample_rate</code> (int, optional): The audio sample rate (default: <code>44100</code>).</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>generate_song_waveform(self, song_data, amplitude=0.5)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Generates the complete 1D waveform for a given song sequence.
+                        </p>
+                        <ul class="list-disc list-outside ml-8 text-gray-700 space-y-2">
+                            <li><strong>Parameters:</strong>
+                                <ul class="list-disc list-outside ml-6 space-y-1 mt-1">
+                                    <li><code>song_data</code> (list): A list of <code>(note_list, num_beats)</code> tuples.
+                                        <ul class="list-disc list-outside ml-6 space-y-1 mt-1">
+                                            <li><code>note_list</code> (list): List of note strings (e.g., <code>['C4', 'E4']</code>). Use <code>[]</code> for a rest.</li>
+                                            <li><code>num_beats</code> (float/int): Duration in beats.</li>
+                                        </ul>
+                                    </li>
+                                    <li><code>amplitude</code> (float): The amplitude (0.0 to 1.0) for this track.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Returns:</strong> A 1D <code>numpy.array</code> containing the full track waveform.</li>
+                        </ul>
+                    </article>
+
+                    <!-- MultiTrackMixer -->
+                    <article id="multitrack-mixer" class="mb-10">
+                        <h3 class="text-2xl font-semibold text-gray-700"><code>class MultiTrackMixer</code></h3>
+                        <p class="text-gray-600 mb-4 ml-2">File: <code>mixing.py</code></p>
+                        <p class="text-gray-700 mb-4">
+                            Mixes multiple, pre-generated audio tracks into one.
+                        </p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>__init__(self, master_amplitude=0.8)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Initializes the mixer.
+                        </p>
+                        <ul class="list-disc list-outside ml-8 text-gray-700 space-y-2">
+                            <li><strong>Parameters:</strong>
+                                <ul class="list-disc list-outside ml-6 space-y-1 mt-1">
+                                    <li><code>master_amplitude</code> (float): The final master amplitude (0.0 to 1.0) applied after mixing.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>mix_tracks(self, tracks_with_volumes)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Mixes a list of tracks, each with a specified volume.
+                        </p>
+                        <ul class="list-disc list-outside ml-8 text-gray-700 space-y-2">
+                            <li><strong>Parameters:</strong>
+                                <ul class="list-disc list-outside ml-6 space-y-1 mt-1">
+                                    <li><code>tracks_with_volumes</code> (list): A list of <code>(waveform, volume)</code> tuples.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Returns:</strong> A 1D <code>numpy.array</code> of the final mixed song.</li>
+                        </ul>
+                    </article>
+
+                    <!-- Utility Functions -->
+                    <article id="utils" class="mb-10">
+                        <h3 class="text-2xl font-semibold text-gray-700"><code>Utility Functions</code></h3>
+                        <p class="text-gray-600 mb-4 ml-2">File: <code>mixing.py</code></p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>normalize_to_16bit(waveform)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Converts a float waveform (-1.0 to 1.0) to a 16-bit integer array (<code>np.int16</code>) suitable for saving.
+                        </p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>save_wav(filename, sample_rate, waveform_int)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Saves a 16-bit integer waveform to a <code>.wav</code> file. Automatically creates a <code>sounds/</code> directory if the path is relative.
+                        </p>
+                    </article>
+                </section>
+                
+                <hr class="border-t-2 border-gray-200" />
+                
+                <!-- Plugin API -->
+                <section id="plugin-api">
+                    <h2 class="text-3xl font-bold text-gray-800 border-b pb-3 mb-6">Plugin Development API (Advanced)</h2>
+                    <p class="text-gray-700 mb-6">
+                        To create a new instrument, add a new <code>.py</code> file to the <code>instruments/</code> directory. In that file, create a class that inherits from <code>BaseInstrument</code>.
+                    </p>
+                    
+                    <!-- BaseInstrument -->
+                    <article id="base-instrument" class="mb-10">
+                        <h3 class="text-2xl font-semibold text-gray-700"><code>class BaseInstrument</code></h3>
+                        <p class="text-gray-600 mb-4 ml-2">File: <code>instruments/base_instrument.py</code></p>
+                        <p class="text-gray-700 mb-4">
+                            This is the abstract base class all instrument plugins must inherit from.
+                        </p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>__init__(self, attack_s=0.01, ...)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Your plugin's <code>__init__</code> should call <code>super().__init__(**adsr_params)</code> to set up the envelope. You can set defaults by using <code>adsr_params.setdefault('attack_s', 0.002)</code>.
+                        </p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>_generate_wave(self, t, frequencies, sample_rate)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            <span class="font-bold text-red-600">[REQUIRED]</span> You **must** override this method.
+                        </p>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            This is where you define your instrument's unique sound.
+                        </p>
+                        <ul class="list-disc list-outside ml-8 text-gray-700 space-y-2">
+                            <li><strong>Parameters:</strong>
+                                <ul class="list-disc list-outside ml-6 space-y-1 mt-1">
+                                    <li><code>t</code> (np.array): The time array.</li>
+                                    <li><code>frequencies</code> (list): A list of frequencies (floats) to be played simultaneously.</li>
+                                    <li><code>sample_rate</code> (int): The sample rate.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Returns:</strong> A raw, un-enveloped, un-normalized 1D <code>np.array</code> of your sound.</li>
+                        </ul>
+                    </article>
+                </section>
+                
+                <hr class="border-t-2 border-gray-200" />
+
+                <!-- Supporting Tools -->
+                <section id="supporting-tools">
+                    <h2 class="text-3xl font-bold text-gray-800 border-b pb-3 mb-6">Supporting Tools</h2>
+                    <p class="text-gray-700 mb-6">
+                        You do not need to interact with these classes directly, as <code>SongPlayer</code> handles them.
+                    </p>
+                    
+                    <!-- NoteFrequencies -->
+                    <article id="note-frequencies" class="mb-10">
+                        <h3 class="text-2xl font-semibold text-gray-700"><code>class NoteFrequencies</code></h3>
+                        <p class="text-gray-600 mb-4 ml-2">File: <code>music_tools.py</code></p>
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>get_frequency(self, note_name)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Converts a note name (e.g., <code>"A4"</code>, <code>"C#5"</code>) into its corresponding frequency.
+                        </p>
+                    </article>
+                    
+                    <!-- Chord -->
+                    <article id="chord" class="mb-10">
+                        <h3 class="text-2xl font-semibold text-gray-700"><code>class Chord</code></h3>
+                        <p class="text-gray-600 mb-4 ml-2">File: <code>music_tools.py</code></p>
+                        <h4 class="text-lg font-semibold text-gray-700 mt-4"><code>get_frequencies(self, root_note, quality)</code></h4>
+                        <p class="text-gray-700 mb-4 ml-4">
+                            Returns a list of frequencies for a given chord. (e.g., <code>get_frequencies("C4", "major")</code>).
+                        </p>
+                    </article>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 mt-12 py-6">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Python Music Synthesizer. API Docs generated by Gemini.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
